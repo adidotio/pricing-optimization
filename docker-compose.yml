@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  streamlit-dashboard:
+    build: .
+    container_name: pricing_optimization_ui
+    ports:
+      - "8501:8501"
+    environment:
+      - API_HOST=fastapi-server
+      - API_PORT=8000
+      - DATABASE_URL=sqlite:///data/pricing_system.db
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    command: ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    depends_on:
+      - fastapi-server
+
+  fastapi-server:
+    build: .
+    container_name: pricing_optimization_api
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DATABASE_URL=sqlite:///data/pricing_system.db
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
